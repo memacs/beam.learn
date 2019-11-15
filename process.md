@@ -85,6 +85,17 @@ When changing this flag messages will be moved. This work has been initiated but
 
 Returns the old value of the flag.
 ```
+# off head
+
+```
+
+typedef struct erl_off_heap {
+    struct erl_off_heap_header* first;
+    Uint64 overhead;     /* Administrative overhead (used to force GC). */
+} ErlOffHeap;
+```
+
+进程控制块中有一个 ErlOffHeap 数据，这个数据是进程所有 off-heap（即“堆外”）数据的链表的头，first 指向第一个 ProcBin。目前 Erlang 进程只有 refc binary 这一种 off-heap 数据，不过以后有可能会有更多类型的 off-heap 数据类型，因为 off-heap 这种名称看上去很 general。ErlOffHeap 数据还有一个字段 overhead，这个字段记录了所有 off-heap 数据大小的总和，这个值会用于垃圾回收，如果这个 overhead 超过了进程的 vheap（虚拟堆）限制，则会进行垃圾回收。vheap 也是一个 general 的概念，尽管目前仅用于 binary。有关 vheap 的初始化、增长和对垃圾回收的控制，请参阅这篇博文[注5]。另外提一下，在 Erlang 虚拟机的代码中，有一个宏 MSO，经常能看到类似 MSO(c_p).overhead 和 MSO(c_p).first 这样的调用，MSO(c_p) 宏实际上获得的就是当前进程 c_p 的 ErlOffHeap 数据。估计 MSO 是 memory shared object 的简写吧，共享内存对象和 off-heap 对象应该是同一个意思
 
 # Resources
 
