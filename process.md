@@ -41,7 +41,9 @@ typedef struct {
 
 ## SPO_LINK
 
-参见[spawn_opt_option](http://erlang.org/doc/man/erlang.html#spawn_opt-5)
+参见
+[spawn_opt_option](http://erlang.org/doc/man/erlang.html#spawn_opt-5)
+[ process_flag(message_queue_data, MQD)](http://erlang.org/doc/man/erlang.html#process_flag_message_queue_data)
 ```
 Options = [spawn_opt_option()]
 priority_level() = low | normal | high | max
@@ -59,4 +61,27 @@ spawn_opt_option() =
     {min_bin_vheap_size, VSize :: integer() >= 0} |
     {max_heap_size, Size :: max_heap_size()} |
     {message_queue_data, MQD :: message_queue_data()}
+    
+message_queue_data() = off_heap | on_heap
+
+process_flag(Flag :: message_queue_data, MQD) -> OldMQD
+OTP 19.0
+Types
+MQD = OldMQD = message_queue_data()
+message_queue_data() = off_heap | on_heap
+This flag determines how messages in the message queue are stored, as follows:
+
+off_heap
+All messages in the message queue will be stored outside of the process heap. This implies that no messages in the message queue will be part of a garbage collection of the process.
+
+on_heap
+All messages in the message queue will eventually be placed on heap. They can however temporarily be stored off heap. This is how messages always have been stored up until ERTS 8.0.
+
+The default message_queue_data process flag is determined by command-line argument +hmqd in erl(1).
+
+If the process potentially can get many messages in its queue, you are advised to set the flag to off_heap. This because a garbage collection with many messages placed on the heap can become extremely expensive and the process can consume large amounts of memory. Performance of the actual message passing is however generally better when not using flag off_heap.
+
+When changing this flag messages will be moved. This work has been initiated but not completed when this function call returns.
+
+Returns the old value of the flag.
 ```
